@@ -123,3 +123,26 @@ record Reasoning (A : Frame) : Set₁ where
   field -- basically, reas says every consistent pair is testified
     reas : ∀ (x y : Frame.Φ A) → Frame._⇌_ A x y
            → ∃[ z ] ((¬ (z ≡ Frame.bot A)) × ((_⊢_ {A} z x) × (_⊢_ {A} z y)))
+
+module Example₂ where
+  open Example₁
+
+  𝟘x⊢𝟘x : _⊢_ {tfFrame} 𝟘x 𝟘x
+  𝟘x⊢𝟘x = refl-⊢ {tfFrame} 𝟘x
+
+  𝟘x⊢𝟙x : _⊢_ {tfFrame} 𝟘x 𝟙x
+  𝟘x⊢𝟙x = bot-to-every {tfFrame} 𝟙x
+
+  𝟙x⊢𝟙x : _⊢_ {tfFrame} 𝟙x 𝟙x
+  𝟙x⊢𝟙x = refl-⊢ {tfFrame} 𝟙x
+
+  reas-tf : ∀ (x y : tf) → (x ↔ y)
+            → ∃[ z ] ((¬ (z ≡ 𝟘x)) × ((_⊢_ {tfFrame} z x) × (_⊢_ {tfFrame} z y)))
+  reas-tf 𝟘x _ ()
+  reas-tf 𝟙x 𝟙x _ = (𝟙x , (p , (𝟙x⊢𝟙x , 𝟙x⊢𝟙x)))
+    where
+    p : ¬ (𝟙x ≡ 𝟘x)
+    p ()
+
+  Reasoning-tf : Reasoning tfFrame
+  Reasoning-tf = record { reas = reas-tf }
