@@ -24,28 +24,31 @@ hp-concat : ∀ {A : Set} {B : A → Set} {f g h : ∀ (a : A) → B a} →
             f ~ g → g ~ h → f ~ h
 hp-concat {A} H K = λ (x : A) → (H x) ∙ (K x)
 
-infix  3 _∎_
+-- naturality of homotopies
 
-_∎_ : ∀ {A : Set} {B : A → Set} {f g h : ∀ (a : A) → B a} →
+
+infix  3 _·_
+
+_·_ : ∀ {A : Set} {B : A → Set} {f g h : ∀ (a : A) → B a} →
       f ~ g → g ~ h → f ~ h
-H ∎ K = hp-concat H K
+H · K = hp-concat H K
 
 hp-ass : ∀ {A : Set} {B : A → Set} {f g h k : ∀ (a : A) → B a} →
-         ∀ (H : f ~ g) (K : g ~ h) (L : h ~ k) → H ∎ (K ∎ L) ~ (H ∎ K) ∎ L
+         ∀ (H : f ~ g) (K : g ~ h) (L : h ~ k) → H · (K · L) ~ (H · K) · L
 hp-ass {A} H K L = λ (x : A) → p-ass (H x) (K x) (L x)
 
 hp-left_unit : ∀ {A : Set} {B : A → Set} {f g : ∀ (a : A) → B a} →
-               ∀ (H : f ~ g) → (hp-refl f) ∎ H ~ H
+               ∀ (H : f ~ g) → (hp-refl f) · H ~ H
 hp-left_unit {A} H = λ (x : A) → left_unit (H x)
 
 hp-right_unit : ∀ {A : Set} {B : A → Set} {f g : ∀ (a : A) → B a} →
-                ∀ (H : f ~ g) → H ∎ (hp-refl g) ~ H
+                ∀ (H : f ~ g) → H · (hp-refl g) ~ H
 hp-right_unit {A} H = λ (x : A) → right_unit (H x)
 
 -- whiskering operations
 whis-f : ∀ {A B C : Set} {f g : A → B} → ∀ (h : B → C) → ∀ (H : f ~ g) →
          (comp h f) ~ (comp h g)
-whis-f {A} {B} {C} {f} {g} h H = λ (x : A) → ap {B} {C} h (f x) (g x) (H x)
+whis-f {A} h H = λ (x : A) → ap h (H x)
 
 whis-h : ∀ {A B C : Set} {g h : B → C} → ∀ (H : g ~ h) → ∀ (f : A → B) →
          (comp g f) ~ (comp h f)
