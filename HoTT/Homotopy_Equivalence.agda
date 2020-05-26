@@ -25,8 +25,15 @@ hp-concat : ∀ {A : Set} {B : A → Set} {f g h : ∀ (a : A) → B a} →
 hp-concat {A} H K = λ (x : A) → (H x) ∙ (K x)
 
 -- naturality of homotopies
+<<<<<<< HEAD
+hpna : ∀ {A B : Set} {x y : A} → ∀ (p : x ≡ y) → ∀ (f g : A → B) → ∀ (H : f ~ g) →
+       (H x) ∙ (ap g p) ≡ (ap f p) ∙ (H y)
+hpna {_} {_} {x} {x} (refl x) f g H = (right_unit (H x)) ∙ (inv (left_unit (H x)))
+
+=======
 
 
+>>>>>>> a0dc66dca08059f740d9290f3d1cad1bb007d721
 infix  3 _·_
 
 _·_ : ∀ {A : Set} {B : A → Set} {f g h : ∀ (a : A) → B a} →
@@ -46,64 +53,66 @@ hp-right_unit : ∀ {A : Set} {B : A → Set} {f g : ∀ (a : A) → B a} →
 hp-right_unit {A} H = λ (x : A) → right_unit (H x)
 
 -- whiskering operations
-whis-f : ∀ {A B C : Set} {f g : A → B} → ∀ (h : B → C) → ∀ (H : f ~ g) →
+whis-r : ∀ {A B C : Set} {f g : A → B} → ∀ (H : f ~ g) → ∀ (h : B → C) →
          (comp h f) ~ (comp h g)
+<<<<<<< HEAD
+whis-r {A} H h = λ (x : A) → ap h (H x)
+=======
 whis-f {A} h H = λ (x : A) → ap h (H x)
+>>>>>>> a0dc66dca08059f740d9290f3d1cad1bb007d721
 
-whis-h : ∀ {A B C : Set} {g h : B → C} → ∀ (H : g ~ h) → ∀ (f : A → B) →
+whis-l : ∀ {A B C : Set} {g h : B → C} → ∀ (H : g ~ h) → ∀ (f : A → B) →
          (comp g f) ~ (comp h f)
-whis-h {A} H f = λ (x : A) → H (f x)
-
+whis-l {A} H f = λ (x : A) → H (f x)
 
 -- ------------------------------------
--- Bi-invertible maps
--- given f : A → B, whether f has a section
-sec : ∀ {A B : Set} → ∀ (f : A → B) → Set
-sec {A} {B} f = Σ g ∶ (B → A) , (id ~ comp f g)
+-- equivalences
+-- first, let's consider quasi-equivalences
+qinv : ∀ {A B : Set} → ∀ (f : A → B) → Set
+qinv {A} {B} f = Σ g ∶ (B → A) , (((comp f g) ~ id) × ((comp g f) ~ id))
 
--- given f : A → B, whether f has a retraction
-retr : ∀ {A B : Set} → ∀ (f : A → B) → Set
-retr {A} {B} f = Σ h ∶ (B → A) , (id ~ comp h f)
+isequiv : ∀ {A B : Set} → ∀ (f : A → B) → Set
+isequiv {A} {B} f = (Σ g ∶ (B → A) , ((comp f g) ~ id)) × (Σ h ∶ (B → A) , ((comp h f) ~ id))
 
--- equivalence
-is_equ : ∀ {A B : Set} → ∀ (f : A → B) → Set
-is_equ f = sec f × retr f
+isequivid : ∀ {A : Set} → isequiv (id {A})
+isequivid {A} = ((id {A} , hp-refl (id {A})) , (id {A} , hp-refl (id {A})))
 
--- the equivalence type between to types
+-- the relation between quasi-inverse and equivalence is as following:
+q→e : ∀ {A B : Set} → ∀ (f : A → B) → qinv f → isequiv f
+q→e f q = ((π₁ q , π₁ (π₂ q)) , (π₁ q , π₂ (π₂ q)))
+
+e→q : ∀ {A B : Set} → ∀ (f : A → B) → isequiv f → qinv f
+e→q {A} {B} f ((g , fgid) , (h , hfid)) = (comp h (comp f g) , (e→q1 , e→q2))
+  where e→q1 : comp f (comp h (comp f g)) ~ id
+        e→q1 = (whis-l {B} {A} {B} (whis-r {A} {A} {B} hfid f) g) · fgid
+        e→q2 : comp (comp h (comp f g)) f ~ id
+        e→q2 = (whis-l {A} {B} {A} (whis-r {B} {B} {A} fgid h) f) · hfid
+-- the above two lemmas shows that quasi-equivalence and equivalence are
+-- logically equivalent
+
+-- ------------------------------------
+-- type equivalence
+infix  3 _≃_
+
 _≃_ : ∀ (A B : Set) → Set
-A ≃ B = Σ f ∶ (A → B) , is_equ f
--- notice the implementation here is really succinct, for it voids the use of
--- a record type, which is very hard to use. All the implicit use of a record
--- type goes into the definition of a Σ type, and we have its constructor
--- available.
+A ≃ B = Σ f ∶ (A → B) , (isequiv f)
 
--- an invertible map
-is_inver : ∀ {A B : Set} → ∀ (f : A → B) → Set
-is_inver {A} {B} f = Σ g ∶ (B → A) , ((id ~ comp f g) × (id ~ comp g f))
-
--- the left inverse and right inverse of a function is homotopic
-eq→hp : ∀ {A B : Set} {f : A → B} → ∀ (p : is_equ f) → π₁ (π₁ p) ~ π₁ (π₂ p)
-eq→hp {_} {B} (s , t) = λ (y : B) → (π₂ t (π₁ s y)) ∙ inv (ap (π₁ t) (π₂ s y))
-
--- the right inverse of an equivalence map is also a left inverse
-eq→r→l : ∀ {A B : Set} {f : A → B} → ∀ (p : is_equ f) → id ~ comp (π₁ (π₁ p)) f
-eq→r→l {A} {_} {f} (s , t) = λ (x : A) → π₂ t x ∙ inv (eq→hp (s , t) (f x))
-
--- combining the following lemmas, we can prove that an equivalence map can
--- be assigned an invertible structure
-eq→inver : ∀ {A B : Set} {f : A → B} → ∀ (p : is_equ f) → is_inver f
-eq→inver (s , t) = (π₁ s , (π₂ s , eq→r→l (s , t)))
--- it should be noticed that there are other ways to assign an invertible
--- structure on f, here we choose to provide its right inverse as its inverse
-
+-- type equivalence is an equivalence relation on Set
+≃-refl : ∀ (A : Set) → A ≃ A
+≃-refl A = id {A} , isequivid {A}
 
 -- ------------------------------------
--- the identity type of a Σ-type
-pair_eq : ∀ {A : Set} {B : A → Set} → ∀ (s t : Σ A B) → s ≡ t →
-          Σ α ∶ (π₁ s ≡ π₁ t) , (tr {A} {B} α (π₂ s) ≡ π₂ t)
-pair_eq s s (refl s) = (refl (π₁ s) , refl (π₂ s))
+-- The higher groupoid structure of type formers
+-- Cartesian product types
+p×1 : ∀ {A B : Set} {x y : A × B} → x ≡ y → π₁ x ≡ π₁ y
+p×1 {_} {_} {x} {x} (refl x) = refl (π₁ x)
 
--- this equality is indeed an equivalence
--- is_pari_eq_equ : ∀ {A : Set} {B : A → Set} {s t : Σ A B} →
---                  is_equ (pair_eq s t)
--- is_pari_eq_equ =
+p×2 : ∀ {A B : Set} {x y : A × B} → x ≡ y → π₂ x ≡ π₂ y
+p×2 {_} {_} {x} {x} (refl x) = refl (π₂ x)
+
+p≡p× : ∀ {A B : Set} {x y : A × B} → ∀ (p : x ≡ y) → (π₁ x ≡ π₁ y) × (π₂ x ≡ π₂ y)
+p≡p× = λ p → (p×1 p , p×2 p)
+
+p×≡p : ∀ {A B : Set} {x1 y1 : A} {x2 y2 : B} →
+      ((x1 ≡ y1) × (x2 ≡ y2)) → (x1 , x2) ≡ (y1 , y2)
+p×≡p {_} {_} {x1} {x1} {x2} {x2} (refl x1 , refl x2) = refl (x1 , x2)
