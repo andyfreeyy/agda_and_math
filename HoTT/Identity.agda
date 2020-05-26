@@ -148,8 +148,11 @@ apid {_} {x} {x} (refl x) = refl (refl x)
 tr : ∀ {A : Set} {B : A → Set} → ∀ {x y : A} → ∀ (p : x ≡ y) → B x → B y
 tr {A} {B} {x} {x} (refl x) = id
 
+<<<<<<< HEAD
+=======
 trc : ∀ {A B : Set} {x y : A} (p : x ≡ y) (b : B) → tr {A} {λ x → B} p b ≡ b
 trc {_} {_} {x} {x} (refl x) b = refl b
+>>>>>>> a0dc66dca08059f740d9290f3d1cad1bb007d721
 -- If you think about this, this is not obvious from a classical point of view.
 -- The existence of the transport function tells us that the dependent type
 -- B : A → Set is always going to be continuous, since whenever we have a path
@@ -162,8 +165,36 @@ lift : ∀ {A : Set} {B : A → Set} → ∀ {x y : A} → ∀ (p : x ≡ y) →
 lift {A} {B} {x} {x} (refl x) b = refl (x , b)
 
 -- the dependent mapping functor
+<<<<<<< HEAD
+apd : ∀ {A : Set} {B : A → Set} {x y : A} → ∀ (f : (∀ (a : A) → B a)) →
+      ∀ (p : x ≡ y) → tr {A} {B} {x} {y} p (f x) ≡ f y
+apd {A} {B} {x} {x} f (refl x) = refl (tr {A} {B} {x} {x} (refl x) (f x))
+
+-- the dependent and non-dependent ap(d) is closely related
+trc : ∀ {A B : Set} {x y : A} (p : x ≡ y) (b : B) → tr {A} {λ x → B} p b ≡ b
+trc {_} {_} {x} {x} (refl x) b = refl b
+
+-- and now we can prove the following:
+apd≡ap : ∀ {A B : Set} {x y : A} →
+         ∀ (f : A → B) (p : x ≡ y) → apd f p ≡ trc p (f x) ∙ (ap f p)
+apd≡ap {_} {_} {x} {x} f (refl x) = refl (refl (f x))
+
+-- some useful properties about transport
+tr∙ : ∀ {A : Set} {B : A → Set} {x y z : A} → ∀ (p : x ≡ y) (q : y ≡ z) →
+      ∀ (b : B x) → tr {A} {B} q (tr {A} {B} p b) ≡ tr {A} {B} (p ∙ q) b
+tr∙ {_} {_} {x} {x} {x} (refl x) (refl x) b = refl b
+
+trcomp : ∀ {A B : Set} {P : B → Set} {x y : A} → ∀ (f : A → B) (p : x ≡ y) →
+         ∀ (b : P (f x)) → tr {A} {λ a → P (f a)} p b ≡ tr {B} {P} (ap f p) b
+trcomp {_} {_} {_} {x} {x} f (refl x) b = refl b
+
+trhi : ∀ {A : Set} {P Q : A → Set} {x y : A} → ∀ (f : ∀ (x : A) → P x → Q x) →
+       ∀ (p : x ≡ y) (b : P x) → f y (tr {A} {P} p b) ≡ tr {A} {Q} p (f x b)
+trhi {_} {_} {_} {x} {x} f (refl x) b = refl (f x b)
+=======
 apd : ∀ {A : Set} {B : A → Set} → ∀ (f : (∀ (a : A) → B a)) →
       ∀ (x y : A) (p : x ≡ y) → tr {A} {B} {x} {y} p (f x) ≡ f y
 apd {A} {B} f x x (refl x) = refl (tr {A} {B} {x} {x} (refl x) (f x))
 
 -- apd helps to construct a
+>>>>>>> a0dc66dca08059f740d9290f3d1cad1bb007d721
